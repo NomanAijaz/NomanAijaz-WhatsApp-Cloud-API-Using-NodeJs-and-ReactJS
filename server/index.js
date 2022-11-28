@@ -1,16 +1,17 @@
+process.env = require('./.env.js')(process.env.NODE_ENV || 'development');
+const port = process.env.PORT || 9000;
 const express = require('express');
-const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
-const router = require('./router/route');
 
-const app = express();
+let indexRoutes = require('./router/route');
 
-dotenv.config({path:'config.env'});
-
-app.use(router);
-
-const PORT = process.env.PORT || 8080;
-
-app.listen(PORT, ()=>{
-    console.log(`SERVER IS RUNNING ON PORT ${PORT}`);
-});
+const main = async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: false }));
+    app.use('/', indexRoutes);
+    app.use('*', (req, res) => res.status(404).send('404 Not Found'));
+    app.listen(port, () =>
+        console.log(`App now running and listening on port ${port}`)
+    );
+};
+main();
