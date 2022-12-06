@@ -1,16 +1,11 @@
 'use strict';
 
 const router = require('express').Router();
-const EcommerceStore = require('./../utils/ecommerce_store.js');
 const WhatsappCloudAPI = require('whatsappcloudapi_wrapper');
 const axios = require('axios');
-
-
-let Store = new EcommerceStore();
-const CustomerSession = new Map();
-const sharp = require('sharp');
-
+const fs = require("fs");
 const stickers = [];
+let count=1;
 
 const Whatsapp = new WhatsappCloudAPI({
     accessToken: process.env.Meta_WA_accessToken,
@@ -59,27 +54,81 @@ router.post('/meta_wa_callbackurl', async (req, res) => {
             let typeOfMsg = incomingMessage.type; // extract the type of message (some are text, others are images, others are responses to buttons etc...)
             let message_id = incomingMessage.message_id; // extract the message id
 
-            console.log(incomingMessage);
+            
                
             if(typeOfMsg === 'sticker_message'){
-             //   console.log(incomingMessage);
-             //   console.log(stickers);
-                
+               console.log(incomingMessage);              
 
                 const header = {
-                    'Authorization': 'Bearer '+'EAALtvRCJ8bgBAHHZAGaIvj96uSMHwFMZAb9zgzPjAjebbuVZBVZCinoK7l1JQLT3pzXSUZBNBYgzRWZCRv4YBcxoDa1EfLnOyeO1TNSaA1WNBBxVboZAkuXHhhrckaZBJ5qzNyJdx2W7UPENEtPnReGZCnKH1w2ATpM1zsGsh5JJhws0sOUa1cZB2B9Wi3o6J4M78UUZBsFq1dpPFpIN6oZCUzEZB',
+                    'Authorization': 'Bearer EAALtvRCJ8bgBAOfyGClEVKJfsMZC1MZCTLAYlTZCmXSZAynxYZCkxu4w2eG6KDdfqqN0h9K6sRySlUvZAFvtEDVLvuAtHYoVsOVaz5inwp5IbvZAsqg022pTXkdA8aZBS5OOOpuGMcsdsZAdEDSCqATWvrXrqm1ZCyWPdLkk3I0ZAXfpQm1kYXCyZBZARFZAg3ANjVKPFtTCfVZBPZAxEZBdw3z4AEDx4',
                 }
-
-                const response = await axios.get(`https://graph.facebook.com/v15.0/${incomingMessage.sticker.id}`, {
+                const _id  =incomingMessage.sticker.id;
+                const response = await axios.get(`https://graph.facebook.com/v15.0/${_id}`, {
                     headers:header,
                 }).then(res=>res.data);
 
-                const imageResponse = await axios.get(response.url,{headers:header}).then(res=>res.data);
-                
-                let img = Buffer.from(imageResponse, 'binary').toString('base64'); //or Buffer.from(data, 'binary')
+    
+               var config = {
+                method: 'get',
+                responseType: 'arraybuffer',
+                url:response.url,
+                encoding: null,
+                headers: { 
+                  'Authorization': 'Bearer EAALtvRCJ8bgBAOfyGClEVKJfsMZC1MZCTLAYlTZCmXSZAynxYZCkxu4w2eG6KDdfqqN0h9K6sRySlUvZAFvtEDVLvuAtHYoVsOVaz5inwp5IbvZAsqg022pTXkdA8aZBS5OOOpuGMcsdsZAdEDSCqATWvrXrqm1ZCyWPdLkk3I0ZAXfpQm1kYXCyZBZARFZAg3ANjVKPFtTCfVZBPZAxEZBdw3z4AEDx4'
+                }
+              };
+              
+
+            //   var file = fs.createWriteStream('image.png');
+            //     var request = https(response.url,config,function(response) {
+            //         response.pipe(file);
+            //     });
+
+
+               const imageResponse = await axios(config).then(res=>{
+                return res;
+              });
+
+               console.log('find type of ', typeof imageResponse);
+               console.log(imageResponse);
+            
+               const dir =`./public/${recipientPhone}`;
+               if (!fs.existsSync(dir)){
+                   fs.mkdirSync(dir);
+                }
+              fs.writeFile(`./public/${recipientPhone}/${count}.png`,imageResponse.data, function (err) {
+              console.log(err); // writes out file without error, but it's not a valid image
+              count++;
+              });
                
+
+           ////     var result = imageResponse.slice(1,-1);  
+           //     console.log(result)
+
+            //  const fileContents = Buffer.from(imageResponse, 'binary').toString('base64'); 
+            //  console.log('fileContents' , ""+fileContents);   
+
+            //  fs.writeFile("out.png", fileContents, 'base64', function(err) {
+            //     console.log('get nothing in erro',err);
+            //   });
+
+                // fs.writeFile('public/image2.png',imageResponse,err=>{console.log(err);});
+             
+
+            //       let base64Data = Buffer.from(imageResponse, 'base64'); //or Buffer.from(data, 'binary')
+            // //     // var originaldata = Buffer.from(base64Data, 'base64');
+            //         console.log(base64Data);
+            // //    // fs.writeFileSync("public/image.jpg", base64Data);
                 
-                console.log('the data I got in response Image ',img);
+            //       await decode(base64Data, { fname: 'public/image', ext: 'jpg' });
+                
+                // let buffer = Buffer.from(base64, 'base64');
+
+            //    fs.writeFile("public/image.webp", base64, 'base64', function(err) {
+            //     console.log(err);
+            //   });
+                
+                //console.log('the data I got in response Image ',base64Data);
 
                    // stickers.push(incomingMessage.sticker);
                    // console.log(stickers);
@@ -87,20 +136,34 @@ router.post('/meta_wa_callbackurl', async (req, res) => {
             }
               
             if (typeOfMsg === 'text_message') {
-                await Whatsapp.sendSimpleButtons({
-                    message: `Hey ${recipientName}, \nYou are speaking to a chatbot.\nWhat do you want to do next?`,
+                await Whatsapp.sendText({
+                    message: `Hey ${recipientName}, \nSend us 10 stickers and we will create a sticker sheet.`,
                     recipientPhone: recipientPhone, 
-                    listOfButtons: [
-                        {
-                            title: 'View some products',
-                            id: 'see_categories',
-                        },
-                        {
-                            title: 'Speak to a human',
-                            id: 'speak_to_human',
-                        },
-                    ],
+                    // listOfButtons: [
+                    //     {
+                    //         title: 'View some pictures',
+                    //         id: 'see_categories',
+                    //     },
+                    //     {
+                    //         title: 'Speak to a human',
+                    //         id: 'speak_to_human',
+                    //     },
+                    // ],
                 });
+                // await Whatsapp.sendSimpleButtons({
+                //     message: `Hey ${recipientName}, \nSend us 10 stickers and we will create a sticker sheet.`,
+                //     recipientPhone: recipientPhone, 
+                //     // listOfButtons: [
+                //     //     {
+                //     //         title: 'View some pictures',
+                //     //         id: 'see_categories',
+                //     //     },
+                //     //     {
+                //     //         title: 'Speak to a human',
+                //     //         id: 'speak_to_human',
+                //     //     },
+                //     // ],
+                // });
             }
 
             if (typeOfMsg === 'simple_button_message') {
@@ -184,26 +247,28 @@ router.post('/meta_wa_callbackurl', async (req, res) => {
     }
 });
 
-router.get('/',async (req, res)=>{
-    console.log(stickers[0]);
-    const img = await sharp(stickers[0]).toFormat('png').toBuffer();
+// router.get('/',async (req, res)=>{
+//     console.log(stickers[0]);
+//     const img = await sharp(stickers[0]).toFormat('png').toBuffer();
 
-    console.log(img);
-    const file = await loadImage(img).then((image) => {
-        ctx.drawImage(
-          image,
-          256,
-          256
-        );
+//     console.log(img);
+//     const file = await loadImage(img).then((image) => {
+//         ctx.drawImage(
+//           image,
+//           256,
+//           256
+//         );
   
-        return { buffer: canvas.toBuffer(), mimetype: `image/png` };
-      });
+//         return { buffer: canvas.toBuffer(), mimetype: `image/png` };
+//       });
 
-      console.log(file);
-      res.send(file)
-    // if(stickers.length>0)
-    // res.send(`<img src=${URL.createObjectURL(stickers[0])}/>`);
-    // else
-    // res.send(`<h1>Empty</h1>`);
-});
+//       console.log(file);
+//       res.send(file)
+//     // if(stickers.length>0)
+//     // res.send(`<img src=${URL.createObjectURL(stickers[0])}/>`);
+//     // else
+//     // res.send(`<h1>Empty</h1>`);
+// });
 module.exports = router;
+
+
