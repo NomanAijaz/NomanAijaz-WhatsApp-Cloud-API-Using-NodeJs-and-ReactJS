@@ -60,7 +60,7 @@ router.post('/meta_wa_callbackurl', async (req, res) => {
                console.log(incomingMessage);              
 
                 const header = {
-                    'Authorization': 'Bearer EAALtvRCJ8bgBAOfyGClEVKJfsMZC1MZCTLAYlTZCmXSZAynxYZCkxu4w2eG6KDdfqqN0h9K6sRySlUvZAFvtEDVLvuAtHYoVsOVaz5inwp5IbvZAsqg022pTXkdA8aZBS5OOOpuGMcsdsZAdEDSCqATWvrXrqm1ZCyWPdLkk3I0ZAXfpQm1kYXCyZBZARFZAg3ANjVKPFtTCfVZBPZAxEZBdw3z4AEDx4',
+                    'Authorization': 'Bearer '+process.env.token,
                 }
                 const _id  =incomingMessage.sticker.id;
                 const response = await axios.get(`https://graph.facebook.com/v15.0/${_id}`, {
@@ -74,15 +74,11 @@ router.post('/meta_wa_callbackurl', async (req, res) => {
                 url:response.url,
                 encoding: null,
                 headers: { 
-                  'Authorization': 'Bearer EAALtvRCJ8bgBAOfyGClEVKJfsMZC1MZCTLAYlTZCmXSZAynxYZCkxu4w2eG6KDdfqqN0h9K6sRySlUvZAFvtEDVLvuAtHYoVsOVaz5inwp5IbvZAsqg022pTXkdA8aZBS5OOOpuGMcsdsZAdEDSCqATWvrXrqm1ZCyWPdLkk3I0ZAXfpQm1kYXCyZBZARFZAg3ANjVKPFtTCfVZBPZAxEZBdw3z4AEDx4'
+                  'Authorization': 'Bearer '+process.env.token,
                 }
               };
               
 
-            //   var file = fs.createWriteStream('image.png');
-            //     var request = https(response.url,config,function(response) {
-            //         response.pipe(file);
-            //     });
 
 
                const imageResponse = await axios(config).then(res=>{
@@ -102,36 +98,7 @@ router.post('/meta_wa_callbackurl', async (req, res) => {
               });
                
 
-           ////     var result = imageResponse.slice(1,-1);  
-           //     console.log(result)
-
-            //  const fileContents = Buffer.from(imageResponse, 'binary').toString('base64'); 
-            //  console.log('fileContents' , ""+fileContents);   
-
-            //  fs.writeFile("out.png", fileContents, 'base64', function(err) {
-            //     console.log('get nothing in erro',err);
-            //   });
-
-                // fs.writeFile('public/image2.png',imageResponse,err=>{console.log(err);});
-             
-
-            //       let base64Data = Buffer.from(imageResponse, 'base64'); //or Buffer.from(data, 'binary')
-            // //     // var originaldata = Buffer.from(base64Data, 'base64');
-            //         console.log(base64Data);
-            // //    // fs.writeFileSync("public/image.jpg", base64Data);
-                
-            //       await decode(base64Data, { fname: 'public/image', ext: 'jpg' });
-                
-                // let buffer = Buffer.from(base64, 'base64');
-
-            //    fs.writeFile("public/image.webp", base64, 'base64', function(err) {
-            //     console.log(err);
-            //   });
-                
-                //console.log('the data I got in response Image ',base64Data);
-
-                   // stickers.push(incomingMessage.sticker);
-                   // console.log(stickers);
+       
             
             }
               
